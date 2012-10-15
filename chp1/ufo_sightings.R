@@ -185,6 +185,7 @@ stringsAsFactors=FALSE)
 us.states<-c("ak","al","ar","az","ca","co","ct","de","fl","ga","hi","ia","id","il",
 "in","ks","ky","la","ma","md","me","mi","mn","mo","ms","mt","nc","nd","ne","nh",
 "nj","nm","nv","ny","oh","ok","or","pa","ri","sc","sd","tn","tx","ut","va","vt",
+
 "wa","wi","wv","wy")
 # list of usa state 
 ufo$USState<-us.states[match(ufo$USState,us.states)]
@@ -217,3 +218,36 @@ ufo.us<-subset(ufo,!is.na(USState))
 
 # Summary Statistics
 summary(ufo.us)
+#Date back 1400s
+
+# Histogram all ufo in usa 
+quick.hist <- ggplot(ufo.us, aes(x = DateOccurred)) +
+  geom_histogram() + 
+  scale_x_date(breaks = "50 years")
+  
+ggsave(plot = quick.hist,
+       filename = file.path("images", "quick_hist.pdf"),
+       height = 6,
+       width = 16)
+# UFO occurs mostly from the 1960s and up
+
+###
+# We want just 1990s and up
+###
+ufo.us<-subset(ufo.us, DateOccurred>=as.Date("1990-01-01"))
+#nrow(ufo.us)
+# number of rows in the subset of just 1990 and up
+
+# Histogram 1990 and up
+quick.hist <- ggplot(ufo.us, aes(x = DateOccurred)) +
+  geom_histogram() + 
+  scale_x_date(breaks = "50 years")
+  
+ggsave(plot = quick.hist,
+       filename = file.path("images", "quick_hist.pdf"),
+       height = 6,
+       width = 16)
+
+#Year month combination in our histogram
+ufo.us$YearMonth<-strftime(ufo.us$DateOccurred, format="%Y-%m")
+
