@@ -9,6 +9,7 @@
 # Library
 ###
 library(ggplot2)
+library(plyr)
 
 ###
 # Load data from text file ufo_awesome.tsv
@@ -248,6 +249,61 @@ ggsave(plot = quick.hist,
        height = 6,
        width = 16)
 
-#Year month combination in our histogram
+# Year month combination in our histogram
 ufo.us$YearMonth<-strftime(ufo.us$DateOccurred, format="%Y-%m")
+# This this will actually add a new column, YearMonth to the ufo.us dataframe
+# We just refer to a column that doesn't exist and R will add it to the
+# dataframe
+
+# Number of UFO sightings for each state by YearMonth
+sightings.counts<-ddply(ufo.us,.(USState,YearMonth), nrow)
+# nrow function to reduce the data by the number of rows in each group
+
+# Let's look at the data
+#head(sightings.counts)
+# Output:
+# 	USState YearMonth V1
+# 1	ak	1990-01	  1	
+# 2	ak	1990-03   1
+# 3	ak	1990-05   1
+# ...
+#
+# There are missing values. Say in 1990 there is only 3 ufo sighting in ak
+# for month 1,3,5. 2 & 4 are... missing? So there are no ufo sighting for
+# month 2 & 4. Data doesn't have entries for nonsighting.
+
+# date.strings vector with all year-months and states 
+date.range<-seq.Date(from=as.Date(min(ufo.us$DateOccurred)),
+		     to=as.Date(max(ufo.us$DateOccurred)), by="month")
+date.strings<-strftime(date.range, "%Y-%m")
+# So we create a date range from the min date in ufo.us to the max ufo.us
+# base on the DateOccurred column base on month
+# Then we format it to %Y-%m
+
+# Dataframe with all year-months and states (all possible combinations)
+states.dates<-lapply(us.states,function(s) cbind(s,date.strings))
+states.dates<-data.frame(do.call(rbind, states.dates), stringsAsFactors=FALSE)
+# Convert to a matrix and then into a dataframe
+#head(states.dates)
+
+# All sighting
+all.sightings<-merge(states.dates,sightings.counts,by.x=c("s","date.strings"),
+                     by.y=c("USState","YearMonth"),all=TRUE)
+# So we merge the states.dates and sightings.counts dataframe to one so that we
+# get all the possible months in a year per state combination.
+# so we match the columns in states.dates (s, date.string) with the column 
+# we want to merge in sightings.counts (USState and YearMonth)
+# The all=TRUE include entries do not match and fill them with NA value
+
+# Check out the data
+#head(all.sightings)
+
+# Making our data more sensible
+names(all.sightings)<-c("State","YearMonth","Sightings")
+all.sightings$Sightings[is.na(all.sightings$Sightings)]<-0
+# Convert all NA to 0
+all.sightings$YearMonth<-as.Date(rep(date.range,length(us.states)))
+all.sightings$State<-as.factor(toupper(all.sightings$State))
+# Format the state 
+head(all.sightings)
 
