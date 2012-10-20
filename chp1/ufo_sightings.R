@@ -303,7 +303,20 @@ names(all.sightings)<-c("State","YearMonth","Sightings")
 all.sightings$Sightings[is.na(all.sightings$Sightings)]<-0
 # Convert all NA to 0
 all.sightings$YearMonth<-as.Date(rep(date.range,length(us.states)))
+# Data is currently as string type we convert it to date datatype
+#length(us.states)
+# output: 50
+#date.range
+# output: all the years and months each with day 1
+#rep(date.range,length(us.states))
+# output: all the years and months each with day 1
+#length(date.range)
+#Output: 248
+#length(rep(date.range,length(us.states)))
+#[1] 12400
+# how?! 50*248 = 12400 oh...
 all.sightings$State<-as.factor(toupper(all.sightings$State))
-# Format the state 
-head(all.sightings)
+# Convert to datatype factor
 
+# See the Data
+head(all.sightings)
