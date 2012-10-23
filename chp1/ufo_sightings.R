@@ -319,4 +319,49 @@ all.sightings$State<-as.factor(toupper(all.sightings$State))
 # Convert to datatype factor
 
 # See the Data
-head(all.sightings)
+#head(all.sightings)
+
+###
+# Analyzing the data
+###
+state.plot<-ggplot(all.sightings, aes(x=YearMonth,y=Sightings))+
+	    geom_line(aes(color="darkblue"))+ 
+	    facet_wrap(~State,nrow=10,ncol=5)+
+	    theme_bw()+
+# in descrete_scale(aestheics, "manual", pal, ...) :
+	# "legend" argument in scale_XXX is deprecated. Use guide="none" for suppress
+	# the guide display 
+	    #scale_color_manual(values=c("darkblue"="darkblue"),legend=FALSE)+
+	    scale_color_manual(values=c("darkblue"="darkblue"),guide="none")+
+# Error in continuous_scale(aesthetics, "data", identity, breaks = breaks, :
+	# unused argument(s) (major = "5 years", format = "%Y")
+	    #scale_x_date(major="5 years", format="%Y")+
+            xlab("Time")+ylab("Number of Sightings")+
+# 'opts' is deprecated.
+# use 'Theme' instead.
+	    #opts(title="Number of UFO sightings by Month-Year and U.S. State (1990-2010)")
+	    ggtitle("Number of UFO sightings by Month-Year and U.S. State (1990-2010)")
+ggsave(plot=state.plot, filename="images/ufo_sightings.pdf",width=14,height=8.5)
+
+###
+# clean up version above (lots of deprecated stuff)
+###
+# ggplot object with all.sightings dataframe
+# aes = aesthetic where x = YearMonthds and y = Sightings 
+state.plot<-ggplot(all.sightings, aes(x=YearMonth,y=Sightings))+
+# plot a line for each state
+	    geom_line(aes(color="darkblue"))+ 
+# break up data so we can observe for each state
+	    facet_wrap(~State,nrow=10,ncol=5)+
+# theme where plot with a white background and black gridlines
+	    theme_bw()+
+# string "darkblue" corresponds to web-safe color "darkblue"
+# we're explicitly telling ggplot that the "darkblue" string is referring to
+# the color "darkblue"
+	    scale_color_manual(values=c("darkblue"="darkblue"),guide="none")+
+# labeling the x axis and y axis 
+            xlab("Time")+ylab("Number of Sightings")+
+# plot title
+	    ggtitle("Number of UFO sightings by Month-Year and U.S. State (1990-2010)")
+# save it as pdf
+ggsave(plot=state.plot, filename="images/ufo_sightings.pdf",width=14,height=8.5)
