@@ -24,3 +24,23 @@ heights <- with(heights.weights, Height)
 # 4. The mean
 # 5. The 3rd quartile (75th percentile)
 # 6. The max value
+
+# Mean function
+my.mean <- function(x) {
+  return(sum(x) / length(x))
+}
+
+# Median function
+my.median <- function(x) {
+  sorted.x <- sort(x)
+
+  if (length(x) %% 2 == 0) {
+    indices <- c(length(x) / 2, length(x) / 2 + 1)
+    return(mean(sorted.x[indices]))
+  }
+  else
+  {
+    index <- ceiling(length[x]) / 2)
+    return(sorted.x[index])
+  }
+}
