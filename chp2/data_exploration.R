@@ -40,7 +40,22 @@ my.median <- function(x) {
   }
   else
   {
-    index <- ceiling(length[x]) / 2)
+    index <- ceiling(length(x) / 2)
     return(sorted.x[index])
   }
 }
+
+# Variance
+my.var <- function(x) {
+  m <- mean(x)
+  return(sum((x-m)^2) / (length(x) - 1))
+} 
+
+#my.var(heights) - var(heights)
+
+# Standard Deviation
+my.sd <- function(x) {
+  return(sqrt(my.var(x)))
+}
+
+#my.sd(heights) - sd(heights)
