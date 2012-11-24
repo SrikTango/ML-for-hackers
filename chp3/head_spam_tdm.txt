@@ -1,0 +1,6 @@
+A term-document matrix (6 terms, 500 documents)
+
+Non-/sparse entries: 7/2993
+Sparsity           : 100%
+Maximal term length: 76 
+Weighting          : term frequency (tf)
