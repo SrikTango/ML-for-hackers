@@ -5,6 +5,7 @@
 # Chapter 3 - Classification: Spam Filtering 
 ###
 
+
 library(tm) # text mining - need for text classification
 library(ggplot2)
 
@@ -163,6 +164,10 @@ spam.tdm <- get.tdm(all.spam)
 #####
 #####
 # Classifier
+#
+# Note: I'm using mostly the book code and code reviewing it now
+#       I'm a bit at loss with the naive bayes algorithm
+#       I need to brush up my probability after finishing this book
 #####
 #####
 
@@ -395,7 +400,7 @@ hardham.hamtest <- sapply(hardham.docs,
   training.df=ham.df))
 
 hardham.res <- ifelse(hardham.spamtest > hardham.hamtest, TRUE, FALSE)
-summary(hardham.res)
+#summary(hardham.res)
 # Output:
 #   Mode   FALSE    TRUE    NA's 
 #logical     239      10       0 
@@ -410,3 +415,189 @@ spam.classifier <- function(path) {
   pr.ham <- classify.email(path, ham.df)
   return(c(pr.spam,pr.ham,ifelse(pr.spam > pr.ham, 1, 0)))
 }
+
+# get all docs and put it in a vector
+easyham2.docs <- dir(easyham2.path)
+easyham2.docs <- easyham2.docs[which(easyham2.docs != "cmds")]
+
+hardham2.docs <- dir(hardham2.path)
+hardham2.docs <- hardham2.docs[which(hardham2.docs != "cmds")]
+
+spam2.docs <- dir(spam2.path)
+spam2.docs <- spam2.docs[which(spam2.docs != "cmds")]
+
+# classify each docs in a list
+easyham2.class <- lapply(easyham2.docs,
+			 function(i) {
+			   spam.classifier(file.path(easyham2.path,i))
+			})
+
+hardham2.class <- lapply(hardham2.docs,
+			 function(i) {
+			   spam.classifier(file.path(hardham2.path,i))
+			})
+
+spam2.class <- lapply(spam2.docs,
+			 function(i) {
+			   spam.classifier(file.path(spam2.path,i))
+			})
+
+#class(easyham2.class)
+# type list
+#head(easyham2.class)
+# output
+#[[1]]
+#[1] 0 0 0
+#
+#[[2]]
+#[1] 5e-181  5e-61  0e+00
+#
+#[[3]]
+#[1] 5e-235  5e-55  0e+00
+#
+#[[4]]
+#[1] 0 0 0
+#
+#[[5]]
+#[1] 5e-121  5e-43  0e+00
+#
+#[[6]]
+#[1] 0 0 0
+
+
+# Create a single, final, data frame with all of the classification data in it
+
+# matrix because of easyham2.class 
+easyham2.matrix <- do.call(rbind, easyham2.class)
+
+#class(easyham2.matrix)
+# type matrix
+#head(easyham2.matrix)
+# output
+#       [,1]  [,2] [,3]
+#[1,]  0e+00 0e+00    0
+#[2,] 5e-181 5e-61    0
+#[3,] 5e-235 5e-55    0
+#[4,]  0e+00 0e+00    0
+#[5,] 5e-121 5e-43    0
+#[6,]  0e+00 0e+00    0
+
+# append EASYHAM column
+easyham2.final <- cbind(easyham2.matrix, "EASYHAM")
+#head(easyham2.final)
+# output
+#     [,1]                    [,2]    [,3] [,4]     
+#[1,] "0"                     "0"     "0"  "EASYHAM"
+#[2,] "4.99999999999999e-181" "5e-61" "0"  "EASYHAM"
+#[3,] "4.99999999999999e-235" "5e-55" "0"  "EASYHAM"
+#[4,] "0"                     "0"     "0"  "EASYHAM"
+#[5,] "5e-121"                "5e-43" "0"  "EASYHAM"
+#[6,] "0"                     "0"     "0"  "EASYHAM"
+
+
+hardham2.matrix <- do.call(rbind, hardham2.class)
+hardham2.final <- cbind(hardham2.matrix, "HARDHAM")
+
+spam2.matrix <- do.call(rbind, spam2.class)
+spam2.final <- cbind(spam2.matrix, "SPAM")
+
+class.matrix <- rbind(easyham2.final, hardham2.final, spam2.final)
+#class(class.matrix)
+# output
+#[1] "matrix"
+#head(class.matrix)
+# output
+#     [,1]                    [,2]    [,3] [,4]     
+#[1,] "0"                     "0"     "0"  "EASYHAM"
+#[2,] "4.99999999999999e-181" "5e-61" "0"  "EASYHAM"
+#[3,] "4.99999999999999e-235" "5e-55" "0"  "EASYHAM"
+#[4,] "0"                     "0"     "0"  "EASYHAM"
+#[5,] "5e-121"                "5e-43" "0"  "EASYHAM"
+#[6,] "0"                     "0"     "0"  "EASYHAM"
+#tail(class.matrix)
+# output
+#        [,1]                    [,2]                    [,3] [,4]  
+#[3040,] "5e-19"                 "5e-25"                 "1"  "SPAM"
+#[3041,] "0"                     "0"                     "0"  "SPAM"
+#[3042,] "4.99999999999999e-187" "0"                     "1"  "SPAM"
+#[3043,] "5e-109"                "5e-127"                "1"  "SPAM"
+#[3044,] "0"                     "0"                     "0"  "SPAM"
+#[3045,] "5e-19"                 "4.99999999999999e-259" "1"  "SPAM"
+
+class.df <- data.frame(class.matrix, stringsAsFactors = FALSE)
+#class(class.df)
+# type dataframe
+
+names(class.df) <- c("Pr.SPAM" ,"Pr.HAM", "Class", "Type")
+class.df$Pr.SPAM <- as.numeric(class.df$Pr.SPAM)
+class.df$Pr.HAM <- as.numeric(class.df$Pr.HAM)
+class.df$Class <- as.logical(as.numeric(class.df$Class))
+class.df$Type <- as.factor(class.df$Type)
+
+#head(class.df)
+# Output: (64-bit system)
+#  Pr.SPAM Pr.HAM Class    Type
+#1   0e+00  0e+00 FALSE EASYHAM
+#2  5e-181  5e-61 FALSE EASYHAM
+#3  5e-235  5e-55 FALSE EASYHAM
+#4   0e+00  0e+00 FALSE EASYHAM
+#5  5e-121  5e-43 FALSE EASYHAM
+#6   0e+00  0e+00 FALSE EASYHAM
+
+# to be code review
+
+# Create final plot of results
+class.plot <- ggplot(class.df, aes(x = log(Pr.HAM), log(Pr.SPAM))) +
+    geom_point(aes(shape = Type, alpha = 0.5)) +
+    stat_abline(yintercept = 0, slope = 1) +
+    scale_shape_manual(values = c("EASYHAM" = 1,
+                                  "HARDHAM" = 2,
+                                  "SPAM" = 3),
+                       name = "Email Type") +
+    scale_alpha(guide = "none") +
+    xlab("log[Pr(HAM)]") +
+    ylab("log[Pr(SPAM)]") +
+    theme_bw() +
+    theme(axis.text.x = element_blank(), axis.text.y = element_blank())
+ggsave(plot = class.plot,
+       filename = file.path("images", "03_final_classification.pdf"),
+       height = 10,
+       width = 10)
+
+get.results <- function(bool.vector)
+{
+  results <- c(length(bool.vector[which(bool.vector == FALSE)]) / length(bool.vector),
+               length(bool.vector[which(bool.vector == TRUE)]) / length(bool.vector))
+  return(results)
+}
+
+# Save results as a 2x3 table
+easyham2.col <- get.results(subset(class.df, Type == "EASYHAM")$Class)
+hardham2.col <- get.results(subset(class.df, Type == "HARDHAM")$Class)
+spam2.col <- get.results(subset(class.df, Type == "SPAM")$Class)
+
+class.res <- rbind(easyham2.col, hardham2.col, spam2.col)
+colnames(class.res) <- c("NOT SPAM", "SPAM")
+print(class.res)
+
+# Save the training data for use in Chapter 4
+write.csv(spam.df, file.path("data", "spam_df.csv"), row.names = FALSE)
+write.csv(ham.df, file.path("data", "easyham_df.csv"), row.names = FALSE)
+
+
+# Date:            2012-02-10                                
+# Author:          Drew Conway (drew.conway@nyu.edu)
+# Purpose:         Code for Chapter 3. In this case we introduce the notion of binary classification.
+#                   In machine learning this is a method for determining what of two categories a 
+#                   given observation belongs to.  To show this, we will create a simple naive Bayes 
+#                   classifier for SPAM email detection, and visualize the results.
+# Data Used:       Email messages contained in data/ directory, source: http://spamassassin.apache.org/publiccorpus/
+# Packages Used:   tm, ggplot2
+
+# All source code is copyright (c) 2012, under the Simplified BSD License.  
+# For more information on FreeBSD see: http://www.opensource.org/licenses/bsd-license.php
+
+# All images and materials produced by this code are licensed under the Creative Commons 
+# Attribution-Share Alike 3.0 United States License: http://creativecommons.org/licenses/by-sa/3.0/us/
+
+# All rights reserved.
